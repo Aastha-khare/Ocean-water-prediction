@@ -1,0 +1,39 @@
+import os
+import netCDF4 as nc
+import numpy as np
+import pandas as pd
+
+def extract_data(folder_path, variable_name, lat_range, lon_range):
+    files = [f for f in os.listdir(folder_path) if f.endswith(".nc")]
+    variable_info = []
+    
+    for file_name in files:
+        file_path = os.path.join(folder_path, file_name)
+        with nc.Dataset(file_path, "r") as dataset:
+            var_data = dataset.variables[variable_name][:]
+            lat = dataset.variables['lat'][:]
+            lon = dataset.variables['lon'][:]
+            
+            r1, r2 = np.argmin(np.abs(lat - lat_range[0])), np.argmin(np.abs(lat - lat_range[1]))
+            c1, c2 = np.argmin(np.abs(lon - lon_range[0])), np.argmin(np.abs(lon - lon_range[1]))
+            
+            sub_var = var_data[:, r2:r1, c1:c2]
+            
+            var_min = sub_var.min()
+            var_max = sub_var.max()
+            var_mean = sub_var.mean()
+            var_std = sub_var.std()
+            
+            variable_info.append([var_min, var_max, var_mean, var_std])
+    
+    df = pd.DataFrame(variable_info, columns=['min', 'max', 'mean', 'std'])
+    return df
+
+if __name__ == "__main__":
+    folder_path = "data/"
+    variable_name = "sst"  # Change as needed
+    lat_range = (14.0, 22.0)
+    lon_range = (65.0, 75.0)
+    
+    df = extract_data(folder_path, variable_name, lat_range, lon_range)
+    df.to_csv("processed_data.csv", index=False)
