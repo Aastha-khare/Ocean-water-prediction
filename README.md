@@ -1,4 +1,4 @@
-# Ocean Water Prediction
+# Ocean Water Colour Prediction
 
 ## Project Overview
 
